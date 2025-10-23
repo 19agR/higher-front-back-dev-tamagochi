@@ -1,9 +1,9 @@
 import os
 
 from game.models import Food, Medicine
-from game.tamagochi import AbstractTamagochi
-from game.clicker import AbstractClicker
-from game.game import AbstractGame
+from game.tamagochi import AbstractTamagochi, FirstTamagochi
+from game.clicker import AbstractClicker, RandomSymbolsClicker
+from game.game import AbstractGame, NormalGame
 
 
 def main():
@@ -19,15 +19,15 @@ def main():
 
     #  Вместо AbstractTamagochi импортируйте
     #  и создайте инстанс от своей реализации
-    tamagochi = AbstractTamagochi()
+    tamagochi = FirstTamagochi()
 
     #  Вместо AbstractClicker импортируйте
     #  и создайте инстанс от своей реализации
-    clicker = AbstractClicker(10, 20)
+    clicker = RandomSymbolsClicker(10, 20)
 
     #  Вместо AbstractGame импортируйте
     #  и создайте инстанс от своей реализации
-    game = AbstractGame(
+    game = NormalGame(
         tamagochi,
         clicker,
         all_food=all_food,
@@ -44,10 +44,10 @@ def main():
         print(f"Сумка с лекарствами: {game.medicine}")
 
         status = game.get_status()
-        print(
-            f"\nСтатус: голод {status['hunger']}, здоровье {status['hp']}, "
-            f"энергия {status['energy']}, монет {status['coins']}\n"
-        )
+        # print(
+        #     f"\nСтатус: голод {status['hunger']}, здоровье {status['hp']}, "
+        #     f"энергия {status['energy']}, монет {status['coins']}\n"
+        # )
         if game.tamagochi.is_sick():
             print("=======Тамагочи болеет======")
             print("=======Отдых действует менее эффективно=======")
@@ -85,7 +85,7 @@ def main():
             case _:
                 output = "Неверная команда"
 
-        os.system('clear')
+        os.system('cls' if os.name == 'nt' else 'clear')
 
 
 if __name__ == "__main__":
