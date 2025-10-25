@@ -7,3 +7,11 @@ class TamagochiIsGone(Exception):
 
 class NotEnoughMoney(Exception):
     """Ошибка когда не хватает монет для покупки"""
+
+
+class IncorrectAnswer(Exception):
+    """Ошибка при некорректном выборе ответа"""
+
+
+class GameExit(Exception):
+    """Ошибка для выхода из игры"""

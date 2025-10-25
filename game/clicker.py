@@ -37,7 +37,7 @@ class AbstractClicker(ABC):
 class RandomSymbolsClicker(AbstractClicker):
     def __init__(self, income_per_click=5, symbols=ascii_uppercase) -> None:
         # Символы для выборки работы
-        self.symbols = symbols
+        self.symbols = symbols.lower()
         self._income_per_click = income_per_click
         self._work_description = ('Вы работаете в службе по набору текста '
                                   'и вам необходимо помогать людям набирать '
@@ -46,10 +46,17 @@ class RandomSymbolsClicker(AbstractClicker):
                                   'которому требуется помощь. Что ж, надеюсь вы'
                                   ' не подведете. Удачи!')
 
-    def click(self) -> None:
+    def click(self) -> bool:
         symbol = random.choice(self.symbols)
-        while input(f'Введите символ {symbol}: ') != symbol:
-            print('Неверно! Попробуйте снова (раскладка должно быть английская)')
+        while True:
+            answer = input(f'Введите символ {symbol}: ').lower().strip()
+            if answer == 'exit':
+                return False
+            if answer == symbol:
+                print('Все верно! Продолжайте в том же духе =)')
+                break
+            print('Неверно! Попробуйте снова (буквы написаны на английском)')
+        return True
 
     @property
     def income_per_click(self) -> int:

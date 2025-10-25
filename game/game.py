@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from .exceptions import IncorrectAnswer, NotEnoughMoney
 from .tamagochi import AbstractTamagochi
 from .clicker import AbstractClicker, RandomSymbolsClicker
 from .models import Food, Medicine
@@ -125,44 +126,60 @@ class NormalGame(AbstractGame):
         self.storage_medicine = []
         self.storage_money = 150
 
+        self.first_time_on_work = True
+
     def work(self) -> int:
         """
         Абстрактный метод для логики действия "работа"
 
         :return: количество заработанных монет
         """
-        print('Добро пожаловать на работу! Ну что ж, давайте приступать.\n'
-              f'{self.clicker.get_work_description}')
-
-        self.clicker.click()
-        return self.clicker.income_per_click
-
-
-    def buy_food(self) -> None:
-        """Абстрактный метод для покупки еды"""
-        all_food_str = '\n'.join(
-            f'{i + 1}. {self.all_food[i]}'
-            for i in range(len(self.all_food))
-        ) + f'\n{len(self.all_food) + 1}. Вернуться назад'
-        print(all_food_str)
-        if (answer := input('Что выбираете?: ')).isdigit() and (answer := int(answer)) <= len(self.all_food) + 1:
-            if answer == len(self.all_food) + 1:  # вернуться назад
-                return
-            selected_food = self.all_food[answer - 1]
-            if selected_food.price <= self.storage_money:
-                self.storage_food.append(selected_food)
-                self.storage_money -= selected_food.price
-                print(f'Еда "{selected_food.name}" добавлена в холодильник!')
-            else:
-                print(f'Упс, кажется монеток на счету не хватило для оплаты...\n'
-                      f'Монеток на счету: {self.storage_money}')
+        if self.first_time_on_work:
+            print('Добро пожаловать на работу! Ну что ж, давайте приступать.\n'
+                  f'{self.clicker.get_work_description}\n'
+                  f'Когда захотите закончить работу, напишите "exit"')
+            self.first_time_on_work = False
         else:
-            print('Упс, кажется такого варианта не было. Попробуйте снова!')
-            self.buy_food()
-### делаем свои ошибки
+            print('Рады видеть вас снова! Думаю вы помните что надо делать\n'
+                  f'Когда захотите закончить работу, напишите "exit"')
 
-    def buy_medicine(self) -> None:
+        earned_money = 0
+        while True:
+            result = self.clicker.click()
+            if result:
+                earned_money += self.clicker.income_per_click
+            else:
+                break
+        self.storage_money += earned_money
+        return earned_money
+
+    def buy_food(self) -> str:
+        """Абстрактный метод для покупки еды"""
+        result = self.go_to_shop(self.all_food, self.storage_food)
+        return result if result else ''
+
+    def buy_medicine(self) -> str:
         """Абстрактный метод для покупки лекарства"""
+        result = self.go_to_shop(self.all_medicine, self.storage_medicine)
+        return result if result else ''
+
+    def go_to_shop(self, products, storage) -> str | None:
+        products_str = self.get_options_from_list(products)
+        print(products_str)
+        if (answer := input('Что выбираете?: ')).isdigit() and (
+        answer := int(answer)) <= len(products) + 1:
+            if answer == len(products) + 1:  # вернуться назад
+                return None
+            selected_food = products[answer - 1]
+
+            if selected_food.price <= self.storage_money:
+                self.storage_money -= selected_food.price
+                storage.append(selected_food)
+                return f'Еда "{selected_food.name}" добавлена в холодильник!'
+            else:
+                raise NotEnoughMoney('Недостаточно монет')
+        else:
+            raise IncorrectAnswer('Неверный ответ')
 
     def feed_tamagochi(self) -> None:
         """Абстрактный метод для кормления тамагочи"""
@@ -183,6 +200,13 @@ class NormalGame(AbstractGame):
         :return: словарь со всеми характеристиками тамагочи
         """
 
+    @staticmethod
+    def get_options_from_list(objects) -> str:
+        return '\n'.join(
+            f'{i + 1}. {objects[i]}'
+            for i in range(len(objects))
+        ) + f'\n{len(objects) + 1}. Вернуться назад'
+
     @property
     def food(self) -> list[Food]:
         """
@@ -201,3 +225,5 @@ class NormalGame(AbstractGame):
         :return: список с имеющимися (купленными) объектами лекарств
         """
         return self.storage_medicine
+
+
