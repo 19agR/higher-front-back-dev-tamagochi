@@ -106,8 +106,9 @@ class FirstTamagochi(AbstractTamagochi):
         self.restart()
         self._hunger_increase_for_action = 5
         self._energy_decrease_for_action = -5
-        self._energy_increase_for_action = 10
+        self._energy_increase_for_action = 15
         self._hp_decrease_for_action = -5
+        self._hp_increase_for_action = 5
         self._happiness_increase_for_action = 25
         self._happiness_decrease_for_action = -25
         self._need_hp_for_sick = 40
@@ -116,8 +117,6 @@ class FirstTamagochi(AbstractTamagochi):
 
     def work(self):
         """Метод для изменения свойств Тамагочи."""
-        self.change_feature('energy', self._energy_decrease_for_action)
-        self.change_feature('hunger', self._hunger_increase_for_action)
 
     def feed(self, food: Food) -> None:
         """
@@ -132,7 +131,7 @@ class FirstTamagochi(AbstractTamagochi):
     def play(self) -> None:
         """Метод для игры с Тамагочи"""
         self.change_feature('happiness', self._happiness_increase_for_action)
-        self.change_feature('hunger', self._hunger_increase_for_action)
+        self.change_feature('hp', self._hp_increase_for_action)
         self.change_feature('energy', self._energy_decrease_for_action)
 
     def rest(self) -> None:
@@ -198,6 +197,9 @@ class FirstTamagochi(AbstractTamagochi):
         output = ''
         need_decrease_hp = False
         need_decrease_happiness = False
+
+        self.change_feature('hunger', self._hunger_increase_for_action)
+        self.change_feature('energy', self._energy_decrease_for_action)
 
         if self._status['energy'] <= 20:
             need_decrease_hp = need_decrease_happiness = True

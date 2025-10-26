@@ -127,7 +127,7 @@ class AbstractGame(ABC):
 
 
 class NormalGame(AbstractGame):
-    """Интерфейс для логики игры"""
+    """Интерфейс для логики игры."""
 
     def __init__(
             self,
@@ -142,7 +142,7 @@ class NormalGame(AbstractGame):
         :param tamagochi: экземпляр тамагочи
         :param clicker: экземпляр кликера
         :param all_food: все доступные варианты еды
-        :param all_medicine: все доступные варианты лекарств
+        :param all_medicine: все доступные варианты лекарств.
         """
         self.tamagochi = tamagochi
         self.clicker = clicker
@@ -158,38 +158,43 @@ class NormalGame(AbstractGame):
         """
         Метод для логики действия "работа"
 
-        :return: количество заработанных монет
+        :return: количество заработанных монет.
         """
-        if self.first_time_on_work:
+        if not hasattr(self.clicker, 'work_description'):
+            print('Добро пожаловать на работу! '
+                  'Ну что ж, давайте приступать.\n')
+        elif self.first_time_on_work:
             print('Добро пожаловать на работу! Ну что ж, давайте приступать.\n'
-                  f'{self.clicker.get_work_description}\n'
+                  f'{self.clicker.work_description}\n'
                   f'Когда захотите закончить работу, напишите "exit"')
             self.first_time_on_work = False
         else:
             print('Рады видеть вас снова! Думаю вы помните что надо делать\n'
                   'Когда захотите закончить работу, напишите "exit"')
 
-        earned_money = 0
+        sum_earned_money = 0
         while True:
             result = self.clicker.click()
-            if result:
-                earned_money += self.clicker.income_per_click * self.work_coef
-                self.tamagochi.work()
-                output = self.tamagochi.update()
-                if output:
-                    print(output)
-            else:
+            earned_money = self.clicker.income_per_click * self.work_coef
+            self.tamagochi.change_feature('coins', earned_money)
+            sum_earned_money += earned_money
+            self.tamagochi.work()
+            output = self.tamagochi.update()
+            if output:
+                print(output)
+
+            if result is None:
                 break
-        self.tamagochi.change_feature('coins', earned_money)
-        return earned_money
+
+        return round(sum_earned_money)
 
     def buy_food(self) -> str:
-        """Метод для покупки еды"""
+        """Метод для покупки еды."""
         result = self.go_to_shop(self.all_food, self.storage_food)
         return result if result else ''
 
     def buy_medicine(self) -> str:
-        """Метод для покупки лекарства"""
+        """Метод для покупки лекарства."""
         result = self.go_to_shop(self.all_medicine, self.storage_medicine)
         return result if result else ''
 
@@ -219,7 +224,7 @@ class NormalGame(AbstractGame):
             raise IncorrectAnswer('Неверный ответ')
 
     def feed_tamagochi(self) -> str:
-        """Метод для кормления тамагочи"""
+        """Метод для кормления тамагочи."""
         if not self.storage_food:
             raise IsEmpty('В холодильнике пусто, сходите в магазин за едой')
 
@@ -230,7 +235,7 @@ class NormalGame(AbstractGame):
                 f'восстановил {selected_food.satiety} единиц голода и энергии')
 
     def heal_tamagochi(self) -> str:
-        """Метод для лечения тамагочи"""
+        """Метод для лечения тамагочи."""
         if not self.storage_medicine:
             raise IsEmpty('В аптечке пусто, сходите в магазин за лекарствами')
 
@@ -243,18 +248,18 @@ class NormalGame(AbstractGame):
                 f'восстановил {selected_medicine.heal_hp} единиц здоровья ')
 
     def rest_tamagochi(self) -> None:
-        """Метод для отдыха тамагочи"""
+        """Метод для отдыха тамагочи."""
         self.tamagochi.rest()
 
     def play_with_tamagochi(self) -> None:
-        """Метод для игры с тамагочи"""
+        """Метод для игры с тамагочи."""
         self.tamagochi.play()
 
     def get_status(self) -> dict[str, Any]:
         """
         Метод для получения статуса (всех характеристик) тамагочи
 
-        :return: словарь со всеми характеристиками тамагочи
+        :return: словарь со всеми характеристиками тамагочи.
         """
         return self.tamagochi.status
 

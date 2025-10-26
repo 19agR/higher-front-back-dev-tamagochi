@@ -24,12 +24,6 @@ class AbstractClicker(ABC):
         """Абстрактное свойство для доступа к количеству монет за клик."""
         raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def get_work_description(self) -> str:
-        """Абстрактное свойство для доступа к описанию сути кликера."""
-        raise NotImplementedError
-
 
 class RandomSymbolsClicker(AbstractClicker):
     """
@@ -42,12 +36,12 @@ class RandomSymbolsClicker(AbstractClicker):
         # Символы для выборки работы
         self.symbols = symbols.lower()
         self._income_per_click = income_per_click
-        self._work_description = ('Вы работаете в службе по набору текста '
-                                  'и вам необходимо помогать людям набирать '
-                                  'текст на их клавиатуре, наша программа '
-                                  'тайно подключает вас к случайному пользователю, '
-                                  'которому требуется помощь. Что ж, надеюсь вы'
-                                  ' не подведете. Удачи!')
+        self.work_description = ('Вы работаете в службе по набору текста '
+                                 'и вам необходимо помогать людям набирать '
+                                 'текст на их клавиатуре, наша программа тайно'
+                                 ' подключает вас к случайному пользователю, '
+                                 'которому требуется помощь. Что ж, надеюсь вы'
+                                 ' не подведете. Удачи!')
 
     def click(self) -> bool:
         """Метод клика для накапливания монет."""
@@ -66,11 +60,4 @@ class RandomSymbolsClicker(AbstractClicker):
     def income_per_click(self) -> int:
         """Свойство для доступа к количеству монет за клик."""
         return self._income_per_click
-
-    @property
-    def get_work_description(self) -> str:
-        """Свойство для доступа к описанию сути кликера."""
-        return self._work_description
-
-
 
