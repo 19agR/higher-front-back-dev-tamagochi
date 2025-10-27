@@ -1,6 +1,7 @@
 """Модуль с интерфейсом и реализацией класса игры."""
 
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Any
 
 from .exceptions import IncorrectAnswer, NotEnoughMoney, IsEmpty
@@ -183,7 +184,7 @@ class NormalGame(AbstractGame):
             if output:
                 print(output)
 
-            if result is None:
+            if not result:
                 break
 
         return round(sum_earned_money)
@@ -198,20 +199,20 @@ class NormalGame(AbstractGame):
         result = self.go_to_shop(self.all_medicine, self.storage_medicine)
         return result if result else ''
 
-    def go_to_shop(self, products, storage) -> str | None:
+    def go_to_shop(self, products: list, storage: list) -> str | None:
         """Метод для покупки предмета и складывания в хранилище."""
-        selected_food = self.choose_smth(products)
-        if selected_food is None:
+        selected_product = self.choose_smth(products)
+        if selected_product is None:
             return None
 
-        if selected_food.price <= self.tamagochi.status['coins']:
-            self.tamagochi.change_feature('coins', -selected_food.price)
-            storage.append(selected_food)
-            return f'Еда "{selected_food.name}" добавлена в холодильник!'
-        else:
-            raise NotEnoughMoney('Недостаточно монет')
+        if selected_product.price <= self.tamagochi.status['coins']:
+            self.tamagochi.change_feature('coins', -selected_product.price)
+            storage.append(deepcopy(selected_product))
+            return ('Спасибо за покупку!'
+                    f'"{selected_product.name}" добавлен в хранилище!')
+        raise NotEnoughMoney('Недостаточно монет')
 
-    def choose_smth(self, objects):
+    def choose_smth(self, objects: list):
         """Метод для выбора предмета из списка объектов."""
         products_str = self.get_options_from_list(objects)
         print(products_str)
@@ -220,8 +221,7 @@ class NormalGame(AbstractGame):
             if answer == len(objects) + 1:  # вернуться назад
                 return None
             return objects[answer - 1]
-        else:
-            raise IncorrectAnswer('Неверный ответ')
+        raise IncorrectAnswer('Неверный ответ')
 
     def feed_tamagochi(self) -> str:
         """Метод для кормления тамагочи."""
@@ -286,8 +286,7 @@ class NormalGame(AbstractGame):
             return 0.5
         elif self.tamagochi.is_happy():
             return 1.5
-        else:
-            return 1.0
+        return 1.0
 
     @property
     def food(self) -> list[Food]:

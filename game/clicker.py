@@ -1,6 +1,8 @@
-import random
-from string import ascii_uppercase
 from abc import ABC, abstractmethod
+
+import random
+
+from .constants import INCOME_PER_CLICK, SYMBOLS_FOR_CLICKER
 
 """Модуль с интерфейсом и реализацией кликера."""
 
@@ -28,10 +30,15 @@ class AbstractClicker(ABC):
 class RandomSymbolsClicker(AbstractClicker):
     """
     Интерфейс для кликера.
+
     Это клавиатурный кликер, в котором нужно нажимать на кнопки для заработка.
     """
 
-    def __init__(self, income_per_click=10, symbols=ascii_uppercase) -> None:
+    def __init__(
+            self,
+            income_per_click=INCOME_PER_CLICK,
+            symbols=SYMBOLS_FOR_CLICKER
+    ) -> None:
         """Создание необходимых для работы кликера параметров"""
         # Символы для выборки работы
         self.symbols = symbols.lower()

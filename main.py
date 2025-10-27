@@ -1,8 +1,12 @@
 import os
 
+from game.constants import (TEXT_STATUS, TEXT_SICK, TEXT_HAPPY, TEXT_ACTIONS,
+    TEXT_BAGS, ALL_FOOD, ALL_MEDICINE, TEXT_TAMAGOCHI_DIE,
+    TEXT_NOT_ENOUGH_MONEY, TEXT_INCORRECT_ANSWER, TEXT_GAME_EXIT,
+    TEXT_RESTART_GAME, TEXT_GREETER, TEXT_AFTER_PLAY, TEXT_AFTER_REST,
+    TEXT_AFTER_WORK)
 from game.exceptions import (GameExit, NotEnoughMoney, IncorrectAnswer,
     TamagochiIsGone, IsEmpty)
-from game.models import Food, Medicine
 from game.tamagochi import FirstTamagochi
 from game.clicker import RandomSymbolsClicker
 from game.game import NormalGame
@@ -18,46 +22,24 @@ def run_game_tick(output, game):
     if output:
         output += '\n\n'
 
-    output += (f"Сумка с едой: {game.food}\n"
-               f"Сумка с лекарствами: {game.medicine}\n")
+    output += TEXT_BAGS.format(food=game.food, medicine=game.medicine)
 
-    status = game.get_status()
-    output += (
-        f"\nСтатус: голод {status['hunger']}%, здоровье {status['hp']}%, "
-        f"энергия {status['energy']}%, монет {status['coins']:.0f}, "
-        f"счастье {status['happiness']}%\n"
-    )
+    output += TEXT_STATUS.format(**game.get_status())
     if game.tamagochi.is_sick():
-        output += (
-            "=======Тамагочи болеет======\n"
-            "=======Отдых и работа действуют менее эффективно=======\n"
-            "=======Необходимо дать Тамагочи лекарства для излечения=======\n"
-        )
+        output += TEXT_SICK
     elif game.tamagochi.is_happy():
-        output += (
-            "=======Тамагочи счастлив======\n"
-            "=======Отдых и работа действуют более эффективно=======\n"
-        )
+        output += TEXT_HAPPY
 
-    output += (
-        "1. Пойти на работу\n"
-        "2. Купить еду\n"
-        "3. Купить лекарство\n"
-        "4. Покормить\n"
-        "5. Вылечить\n"
-        "6. Играть\n"
-        "7. Отдых\n"
-        "0. Выход\n"
-    )
+    output += TEXT_ACTIONS
 
     print(output)
 
     match input("Выберите действие: "):
         case "1":
-            income = game.work()
-            output = (f'Вы вернулись с работы и заработали '
-                      f'{income:.0f} монет.\nНа вашем счету: '
-                      f'{game.tamagochi.status["coins"]:.0f} монет')
+            output = TEXT_AFTER_WORK.format(
+                income=game.work(),
+                **game.get_status()
+            )
         case "2":
             output = game.buy_food()
         case "3":
@@ -68,14 +50,14 @@ def run_game_tick(output, game):
             output = game.heal_tamagochi()
         case "6":
             game.play_with_tamagochi()
-            output = 'Вы немного поиграли с Тамагочи, и он стал счастливее =)'
+            output = TEXT_AFTER_PLAY
         case "7":
             game.rest_tamagochi()
-            output = 'Тамагочи хорошенько отдохнул'
+            output = TEXT_AFTER_REST
         case "0":
             raise GameExit()
         case _:
-            output = "Неверная команда"
+            output = TEXT_INCORRECT_ANSWER
     result = game.tamagochi.update()
     if result:
         if output:
@@ -87,50 +69,34 @@ def run_game_tick(output, game):
 
 def main():
     """Создание всего необходимого и запуск игры."""
-    all_food = [
-        Food(name='Бургер', satiety=50, price=40),
-        Food(name='Салат', satiety=30, price=20),
-        Food(name='Яблоко', satiety=10, price=5),
-    ]
-
-    all_medicine = [
-        Medicine(name='Ибупрофен', price=30, heal_hp=25, number_of_uses=2),
-        Medicine(name='Омез', price=50, heal_hp=40, number_of_uses=2)
-    ]
-
     tamagochi = FirstTamagochi()
     clicker = RandomSymbolsClicker(income_per_click=15)
     game = NormalGame(
         tamagochi,
         clicker,
-        all_food=all_food,
-        all_medicine=all_medicine
+        all_food=ALL_FOOD,
+        all_medicine=ALL_MEDICINE
     )
 
-    output = 'Добро пожаловать в Тамагочи-кликер!'
+    output = TEXT_GREETER
 
     while True:
         try:
             output = run_game_tick(output, game)
         except NotEnoughMoney:
-            output = ('Упс, кажется монеток на счету не хватило для оплаты!\n'
-                      'Монеток на счету: '
-                      f'{game.tamagochi.status["coins"]:.0f}')
+            output = TEXT_NOT_ENOUGH_MONEY.format(**game.get_status())
         except IncorrectAnswer:
-            output = 'Упс, кажется нет такого варианта, попробуйте снова!'
+            output = TEXT_INCORRECT_ANSWER
         except TamagochiIsGone:
-            print('О нет, Тамагочи умер! '
-                  'Но вы всегда можете попробовать снова! Нужно просто '
-                  'забыть эту оплошность и перезапустить игру ;)')
+            print(TEXT_TAMAGOCHI_DIE)
             answer = input('Хотите попробовать снова?:\n1) Да\n2) Нет').strip()
             if answer == '1':
                 game.restart()
-                output = ('И снова добро пожаловать в Тамагочи-кликер! '
-                          'Попробуем еще раз =)')
+                output = TEXT_RESTART_GAME
             else:
                 break
         except GameExit:
-            print('До новых встреч! Тамагочи будет скучать =)')
+            print(TEXT_GAME_EXIT)
             break
         except IsEmpty as err:
             output = str(err)

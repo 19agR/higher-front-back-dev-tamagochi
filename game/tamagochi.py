@@ -2,6 +2,8 @@
 
 from abc import ABC, abstractmethod
 
+from .constants import (MAX_VALUE_FOR_FEATURE, MIN_VALUE_FOR_FEATURE,
+    FEATURE_WITHOUT_MAX_VALUE)
 from .exceptions import TamagochiIsGone
 from .models import Food, Medicine
 
@@ -115,6 +117,11 @@ class FirstTamagochi(AbstractTamagochi):
         self._need_happiness_for_happy = 80
         self._food_give_energy_coef = 0.5
 
+        self._lvl_of_energy_to_decrease_hp = 20
+        self._lvl_of_hunger_to_decrease_hp = 80
+        self._lvl_of_happiness_to_decrease_hp = 25
+
+
     def work(self):
         """Метод для изменения свойств Тамагочи."""
 
@@ -148,13 +155,14 @@ class FirstTamagochi(AbstractTamagochi):
         self.change_feature('hp', medicine.heal_hp)
         self._status['sick'] = False
 
-    def change_feature(self, feature, amount) -> None:
+    def change_feature(self, feature: str, amount: int) -> None:
         """Метод для изменения свойств Тамагочи."""
         self._status[feature] += amount
-        if self._status[feature] >= 100 and feature != 'coins':
-            self._status[feature] = 100
-        elif self._status[feature] < 0:
-            self._status[feature] = 0
+        if (self._status[feature] > MAX_VALUE_FOR_FEATURE
+                and feature not in FEATURE_WITHOUT_MAX_VALUE):
+            self._status[feature] = MAX_VALUE_FOR_FEATURE
+        elif self._status[feature] < MIN_VALUE_FOR_FEATURE:
+            self._status[feature] = MIN_VALUE_FOR_FEATURE
 
     @property
     def status(self) -> dict[str, int]:
@@ -201,17 +209,17 @@ class FirstTamagochi(AbstractTamagochi):
         self.change_feature('hunger', self._hunger_increase_for_action)
         self.change_feature('energy', self._energy_decrease_for_action)
 
-        if self._status['energy'] <= 20:
+        if self._status['energy'] <= self._lvl_of_energy_to_decrease_hp:
             need_decrease_hp = need_decrease_happiness = True
             output += ('\nВнимание! Низкий запас энергии, снижается здоровье.'
                        ' Дайте Тамагочи лекарство')
 
-        if self._status['hunger'] >= 80:
+        if self._status['hunger'] >= self._lvl_of_hunger_to_decrease_hp:
             need_decrease_hp = need_decrease_happiness = True
             output += ('\nВнимание! Низкий запас голода, снижается здоровье.'
                        ' Покормите Тамагочи')
 
-        if self._status['happiness'] <= 25:
+        if self._status['happiness'] <= self._lvl_of_happiness_to_decrease_hp:
             need_decrease_hp = True
             output += ('\nВнимание! Низкий запас счастья, риск депрессии '
                        'снижается здоровье. Поиграйте с Тамагочи')
